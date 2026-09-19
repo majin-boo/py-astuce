@@ -24,9 +24,67 @@ Le site **MyAstuce** ([myastuce.fr](https://www.myastuce.fr)) est le portail off
 
 ---
 
-## API publique fonctionnelle — Backend mobile
+## Utilisation de la lib Python
 
-L'application mobile utilise une API REST publique sans authentification :
+```python
+from astuce import AstuceClient
+
+client = AstuceClient()
+```
+
+**Rechercher un arrêt par nom**
+
+```python
+for s in client.search_stops("hôtel de ville"):
+    print(s)
+# Hôtel de Ville — Rouen (76000)  [ID: 9144]  modes: BUS
+# Hôtel de Ville de Sotteville — Sotteville-lès-Rouen (76300)  [ID: 9063]  modes: BUS, TAD, METRO
+```
+
+**Prochains passages à un arrêt**
+
+```python
+passages = client.get_next_departures(9144)
+for p in passages:
+    print(p)
+# [Bus] F1 — Plaine de la Ronce <> Stade Diochon → Stade Diochon PETIT-QUEVILLY  [Hôtel de Ville (HVR1)]
+#   • in 4 min (11:14) [DISRUPTED] → Stade Diochon PETIT-QUEVILLY
+#   • in 27 min (11:37) → Stade Diochon PETIT-QUEVILLY
+```
+
+**Filtrer par sens**
+
+```python
+passages = client.get_next_departures(9144, direction=2)
+```
+
+**Lister les lignes et directions disponibles à un arrêt**
+
+```python
+for ligne in client.get_lines_at_stop(9144):
+    print(ligne)
+# [Bus] F1 — Plaine de la Ronce <> Stade Diochon
+# [Bus] F2 — Centre commercial de La Vatine <> Tamarelle
+# ...
+
+for direction in client.get_directions_at_stop(9144):
+    print(direction.id, direction.name)
+# 1  Stade Diochon PETIT-QUEVILLY
+# 2  Plaine de la Ronce ISNEAUVILLE
+```
+
+**Trouver les arrêts à proximité d'un point GPS**
+
+```python
+for s in client.find_nearby_stops(49.4438, 1.0989, distance=300):
+    print(s)
+```
+
+---
+
+## API publique fonctionnelle
+
+L'application mobile et le site web utilisent une API REST publique sans authentification :
 
 ```
 GET https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{ID}/NextDeparture?realTime=true&lineId={lineId}&direction={dir}&userId=API_KEY
@@ -61,9 +119,6 @@ GET https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{ID}/NextDe
 | **Chaîne vide** | ❌ Erreur de parsing JSON |
 | **Espace** | ❌ Erreur de parsing JSON |
 
-**Conclusion :** L'API ne valide pas l'authentification. Passez simplement n'importe quelle valeur non vide pour `userId` (ou omettez le paramètre — l'API renvoie les données par défaut).
-
-> **⚠️ Note de sécurité :** C'est un contournement d'authentification trivial — n'importe quelle valeur fonctionne ! Cela peut être intentionnel (API publique) ou une négligence.
 
 ### Exemple de requête
 
@@ -157,66 +212,6 @@ Arrêts courants :
 
 ---
 
-## Exemple d'utilisation Python
-
-```python
-import urllib.request
-import json
-import urllib.parse
-
-def get_next_departures(stop_id, api_key="TSI_MRN"):
-    """
-    Récupère les prochains départs depuis l'API mobile
-    
-    Args:
-        stop_id: ID de l'arrêt logique (ex: 9144)
-        api_key: Clé API (TSI_MRN, CITYWAY, ZEN, ou toute chaîne non vide)
-    
-    Returns:
-        Liste des départs
-    """
-    url = f"https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{stop_id}/NextDeparture?realTime=true&lineId=&direction=&userId={api_key}"
-    
-    try:
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            return data
-    except Exception as e:
-        print(f"Erreur: {e}")
-        return None
-
-def get_departure_for_line(stop_id, line_id, api_key="TSI_MRN"):
-    """
-    Filtre les départs par ligne
-    """
-    url = f"https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{stop_id}/NextDeparture?realTime=true&lineId={line_id}&direction=&userId={api_key}"
-    
-    try:
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            return data
-    except Exception as e:
-        print(f"Erreur: {e}")
-        return None
-
-# Exemple : Récupérer les départs depuis Hôtel de Ville
-result = get_next_departures(9144)
-for bus in result:
-    for line in bus['lines']:
-        print(f"Ligne: {line['line']['number']} - {line['line']['name']}")
-        for time in line['times'][:1]:
-            print(f"  Direction: {line['direction']['name']}")
-            print(f"  Prochain: dans {time['timeDifference']} minutes")
-            print(f"  Heure: {time['dateTime']}")
-            print()
-
-# Exemple : Récupérer les départs pour la ligne FAST F1 uniquement
-result = get_departure_for_line(9144, 24099)  # ID ligne F1
-print(result)
-```
-
----
-
 ## APIs supplémentaires
 
 D'après l'analyse du code, ces endpoints existent :
@@ -231,18 +226,6 @@ D'après l'analyse du code, ces endpoints existent :
 | `GET /api/v1/fr/Connections/Connection?type=transport&from=<addr>&to=<addr>&structuredLines=<ID>` | Correspondance avec filtre de ligne |
 
 ---
-
-## Statut actuel
-
-| API | Statut | Notes |
-|-----|--------|-------|
-| **API mobile (api.mrn.cityway.fr)** | ✅ Fonctionne | Publique, sans authentification (clé API seulement) |
-| **API site (myastuce.fr)** | ✅ Active | SPA Angular, données chargées en JS, pas d'accès direct |
-| **API legacy (réseau-astuce.fr)** | ❌ Hors service | Redirige vers myastuce.fr |
-| **APIs Cityway** | ❌ Indisponible | Ne résout pas |
-| **Applications mobiles** | ✅ Même backend | Utilise api.mrn.cityway.fr |
-
-**Conclusion :** L'API mobile à `api.mrn.cityway.fr` est publique, fonctionne sans authentification et fournit des données de transport en temps réel en JSON.
 
 ---
 
