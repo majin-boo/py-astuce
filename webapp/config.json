@@ -1,0 +1,7 @@
+{
+  "stop_id": 9144,
+  "direction": 1,
+  "refresh_seconds": 30,
+  "port": 5000,
+  "debug": false
+}

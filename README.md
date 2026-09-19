@@ -1,66 +1,77 @@
-# API pour le réseau Astuce rouenais
+# API pour le réseau Astuce rouennais
 
-## Overview
+## Vue d'ensemble
 
-The **MyAstuce** website ([myastuce.fr](https://www.myastuce.fr)) is the official transit portal for **Réseau Astuce**, the public transportation network in **Rouen Métropole** (Rouen area in Normandy, France).
+Le site **MyAstuce** ([myastuce.fr](https://www.myastuce.fr)) est le portail officiel de transport pour le **Réseau Astuce**, le réseau de transports en commun de **Rouen Métropole** (agglomération rouennaise en Normandie, France).
 
-**Transport modes covered:**
-- **Metro** (METRO)
-- **TEOR** (Urban Electric Trains: T1, T2, T3, T4)
-- **FAST** (Trams)
-- **Bus** networks (regular, ELBEUF, AlloBus)
+**Modes de transport couverts :**
+- **Métro** (METRO)
+- **TEOR** (Tramways urbains : T1, T2, T3, T4)
+- **FAST** (Bus à haut niveau de service)
+- **Bus** (réseau régulier, ELBEUF, AlloBus)
 - **Taxi** (t35, t53, t54)
+
+### Correspondance des modes dans l'API
+
+| Mode API | Réseau Astuce | Description |
+|----------|--------------|-------------|
+| `Metro` | Métro | Ligne de métro automatique |
+| `Trolley` | TEOR (T1, T2, T3, T4) | Tramway sur pneus guidé — appelé `TROLLEY` dans l'API de recherche |
+| `Bus` | FAST (F1-F9), Bus, ELBEUF | Bus régulier et bus à haut niveau de service — FAST n'a pas de mode dédié |
+| `Bus` / `TAD` | AlloBus | Transport à la demande — apparaît comme `TAD` dans l'API de recherche |
+| `Bus` / `TAXIBUS` | Taxi (t35, t53, t54) | Lignes de taxi conventionnées |
+| `Bus` / `CAR` | Cars interurbains | Cars régionaux (Nomad) desservant certains arrêts du réseau |
 
 ---
 
-## Current Public API (WORKS!) — Mobile Backend
+## API publique fonctionnelle — Backend mobile
 
-The mobile app uses a public REST API that doesn't require authentication:
+L'application mobile utilise une API REST publique sans authentification :
 
 ```
 GET https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{ID}/NextDeparture?realTime=true&lineId={lineId}&direction={dir}&userId=API_KEY
 ```
 
-### Parameters
+### Paramètres
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `ID` (in path) | int | Yes | Logical stop ID (e.g., 9144 = Hôtel de Ville) |
-| `realTime` | boolean | No | Set to `true` for real-time data |
-| `lineId` | int | No | Filter by line ID (e.g., 175 for Metro) |
-| `direction` | int | No | Filter by direction (1 or 2) |
-| `userId` | string | No | **API Key** (any non-empty value works!) |
+| Paramètre | Type | Requis | Description |
+|-----------|------|--------|-------------|
+| `ID` (dans le chemin) | int | Oui | ID de l'arrêt logique (ex: 9144 = Hôtel de Ville) |
+| `realTime` | boolean | Non | Définir à `true` pour les données en temps réel |
+| `lineId` | int | Non | Filtrer par ID de ligne (ex: 175 pour le Métro) |
+| `direction` | int | Non | Filtrer par direction (1 ou 2) |
+| `userId` | string | Non | **Clé API** (n'importe quelle valeur non vide fonctionne !) |
 
 ---
 
-## API Key (Authentication) — PUBLIC API
+## Clé API (Authentification) — API publique
 
-**The API key is effectively a no-op!** Any non-empty string works:
+**La clé API ne sert à rien !** N'importe quelle chaîne non vide fonctionne :
 
-| Value | Result |
-|-------|--------|
-| `TSI_MRN` | ✅ Works |
-| `CITYWAY` | ✅ Works |
-| `ZEN` | ✅ Works |
-| `GAT` | ✅ Works |
-| `null` | ✅ Works |
-| `undefined` | ✅ Works |
-| `false` | ✅ Works |
-| Any alphanumeric string | ✅ Works |
-| **Empty string** | ❌ JSON parse error |
-| **Space** | ❌ JSON parse error |
+| Valeur | Résultat |
+|-------|----------|
+| `TSI_MRN` | ✅ Fonctionne |
+| `CITYWAY` | ✅ Fonctionne |
+| `ZEN` | ✅ Fonctionne |
+| `GAT` | ✅ Fonctionne |
+| `null` | ✅ Fonctionne |
+| `undefined` | ✅ Fonctionne |
+| `false` | ✅ Fonctionne |
+| Toute chaîne alphanumérique | ✅ Fonctionne |
+| **Chaîne vide** | ❌ Erreur de parsing JSON |
+| **Espace** | ❌ Erreur de parsing JSON |
 
-**Conclusion:** The API performs no authentication validation. Simply pass any non-empty value for `userId` (or omit the parameter entirely — the API returns default data).
+**Conclusion :** L'API ne valide pas l'authentification. Passez simplement n'importe quelle valeur non vide pour `userId` (ou omettez le paramètre — l'API renvoie les données par défaut).
 
-> **⚠️ Security Note:** This is a trivial authentication bypass — any value works! This might be intentional (public API) or an oversight.
+> **⚠️ Note de sécurité :** C'est un contournement d'authentification trivial — n'importe quelle valeur fonctionne ! Cela peut être intentionnel (API publique) ou une négligence.
 
-### Example Request
+### Exemple de requête
 
 ```bash
 curl "https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/9144/NextDeparture?realTime=true&lineId=&direction=&userId=TSI_MRN"
 ```
 
-### Response (JSON)
+### Réponse (JSON)
 
 ```json
 [
@@ -111,43 +122,42 @@ curl "https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/9144/Next
 ]
 ```
 
-### Key Fields
+### Champs principaux
 
-| Field | Description |
+| Champ | Description |
 |-------|-------------|
 | `transportMode` | Bus, Metro, TEOR, FAST, Taxi |
-| `line.name` | Full line name (e.g., "Plaine de la Ronce <> Stade Diochon") |
-| `line.number` | Line number (e.g., "F1", "METRO", "T2") |
-| `direction.name` | Terminal destination |
-| `stop.name` | Station name |
-| `stop.latitude`, `stop.longitude` | Station coordinates |
-| `timeDifference` | **Minutes until next departure** |
-| `times[].dateTime` | ISO timestamp |
-| `isDisrupted` | Service disruption flag |
-| `isTimeout` | Vehicle is late |
+| `line.name` | Nom complet de la ligne (ex: "Plaine de la Ronce <> Stade Diochon") |
+| `line.number` | Numéro de ligne (ex: "F1", "METRO", "T2") |
+| `direction.name` | Destination terminus |
+| `stop.name` | Nom de la station |
+| `stop.latitude`, `stop.longitude` | Coordonnées de la station |
+| `timeDifference` | **Minutes avant le prochain départ** |
+| `times[].dateTime` | Horodatage ISO |
+| `isDisrupted` | Indicateur de perturbation |
+| `isTimeout` | Véhicule en retard |
 
 ---
 
-## Station ID Reference
+## Référence des ID de station
 
-The logical stop ID (e.g., 9144 = Hôtel de Ville) comes from the site's `idContext` parameter:
+L'ID d'arrêt logique (ex: 9144 = Hôtel de Ville) provient du paramètre `idContext` du site :
 
 ```
 https://www.myastuce.fr/fr/carte-interactive?context=NearbyPopup&idContext=68273&subContext=LOGICAL_STOP
 ```
 
-Common stops:
+Arrêts courants :
 
-| Station | Logical ID | Description |
+| Station | ID logique | Description |
 |---------|-----------|-------------|
-| Hôtel de Ville | 9144 | City center |
-| Gare Rue Verte | 68273 | Transit hub |
-| Palais de Justice | 50000+ | Metro |
-| La Jatel | 80000+ | Metro/Bus |
+| Hôtel de Ville | 9144 | Centre-ville |
+| Gare Rue Verte | 68273 | Pôle d'échanges |
+| Palais de Justice - Gisèle Halimi | 63169 | Métro |
 
 ---
 
-## Python Usage Example
+## Exemple d'utilisation Python
 
 ```python
 import urllib.request
@@ -156,14 +166,14 @@ import urllib.parse
 
 def get_next_departures(stop_id, api_key="TSI_MRN"):
     """
-    Get next departures from the mobile API
+    Récupère les prochains départs depuis l'API mobile
     
     Args:
-        stop_id: Logical stop ID (e.g., 9144)
-        api_key: API key (TSI_MRN, CITYWAY, ZEN, or any non-empty string)
+        stop_id: ID de l'arrêt logique (ex: 9144)
+        api_key: Clé API (TSI_MRN, CITYWAY, ZEN, ou toute chaîne non vide)
     
     Returns:
-        List of transit departures
+        Liste des départs
     """
     url = f"https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{stop_id}/NextDeparture?realTime=true&lineId=&direction=&userId={api_key}"
     
@@ -172,12 +182,12 @@ def get_next_departures(stop_id, api_key="TSI_MRN"):
             data = json.loads(response.read().decode('utf-8'))
             return data
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Erreur: {e}")
         return None
 
 def get_departure_for_line(stop_id, line_id, api_key="TSI_MRN"):
     """
-    Filter departures by line
+    Filtre les départs par ligne
     """
     url = f"https://api.mrn.cityway.fr/media/api/v1/fr/Schedules/LogicalStop/{stop_id}/NextDeparture?realTime=true&lineId={line_id}&direction=&userId={api_key}"
     
@@ -186,61 +196,63 @@ def get_departure_for_line(stop_id, line_id, api_key="TSI_MRN"):
             data = json.loads(response.read().decode('utf-8'))
             return data
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Erreur: {e}")
         return None
 
-# Example: Get departures from Hôtel de Ville
+# Exemple : Récupérer les départs depuis Hôtel de Ville
 result = get_next_departures(9144)
 for bus in result:
     for line in bus['lines']:
-        print(f"Line: {line['line']['number']} - {line['line']['name']}")
+        print(f"Ligne: {line['line']['number']} - {line['line']['name']}")
         for time in line['times'][:1]:
             print(f"  Direction: {line['direction']['name']}")
-            print(f"  Next: in {time['timeDifference']} minutes")
-            print(f"  Time: {time['dateTime']}")
+            print(f"  Prochain: dans {time['timeDifference']} minutes")
+            print(f"  Heure: {time['dateTime']}")
             print()
 
-# Example: Get departures for FAST F1 line only
-result = get_departure_for_line(9144, 24099)  # F1 line ID
+# Exemple : Récupérer les départs pour la ligne FAST F1 uniquement
+result = get_departure_for_line(9144, 24099)  # ID ligne F1
 print(result)
 ```
 
 ---
 
-## Additional APIs
+## APIs supplémentaires
 
-From code analysis, these endpoints exist:
+D'après l'analyse du code, ces endpoints existent :
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/v1/fr/Schedules/LogicalStop/{id}/NextDeparture` | Next departures |
-| `GET /api/v1/fr/Schedules/LogicalStop/{id}/TimeTable` | Full schedule |
-| `GET /api/v1/fr/Stops/Logical/GetByLogicalId/{id}` | Stop info by ID |
-| `GET /api/v1/fr/Connectivity/FindNearbyStation?x=&y=&distance=500` | Find nearby station |
-| `GET /api/v1/fr/Connections/Connection?type=transport&from=<addr>&to=<addr>` | Connection between two stations |
-| `GET /api/v1/fr/Connections/Connection?type=transport&from=<addr>&to=<addr>&structuredLines=<ID>` | Connection with line filter |
+| `GET /api/v1/fr/Schedules/LogicalStop/{id}/NextDeparture` | Prochains départs |
+| `GET /api/v1/fr/Schedules/LogicalStop/{id}/TimeTable` | Horaires complets |
+| `GET /api/v1/fr/Stops/Logical/GetByLogicalId/{id}` | Infos arrêt par ID |
+| `GET /api/v1/fr/Connectivity/FindNearbyStation?x=&y=&distance=500` | Trouver une station proche |
+| `GET /api/v1/fr/Connections/Connection?type=transport&from=<addr>&to=<addr>` | Correspondance entre deux stations |
+| `GET /api/v1/fr/Connections/Connection?type=transport&from=<addr>&to=<addr>&structuredLines=<ID>` | Correspondance avec filtre de ligne |
 
 ---
 
-## Current Status
+## Statut actuel
 
-| API | Status | Notes |
+| API | Statut | Notes |
 |-----|--------|-------|
-| **Mobile API (api.mrn.cityway.fr)** | ✅ WORKS | Public, no auth required (API key only) |
-| **Site API (myastuce.fr)** | ✅ Active | Angular SPA, JS-loaded data, no direct access |
-| **Legacy API (réseau-astuce.fr)** | ❌ Dead | Redirects to myastuce.fr |
-| **Cityway APIs** | ❌ Unavailable | Not resolving |
-| **Mobile Apps** | ✅ Same backend | Uses api.mrn.cityway.fr |
+| **API mobile (api.mrn.cityway.fr)** | ✅ Fonctionne | Publique, sans authentification (clé API seulement) |
+| **API site (myastuce.fr)** | ✅ Active | SPA Angular, données chargées en JS, pas d'accès direct |
+| **API legacy (réseau-astuce.fr)** | ❌ Hors service | Redirige vers myastuce.fr |
+| **APIs Cityway** | ❌ Indisponible | Ne résout pas |
+| **Applications mobiles** | ✅ Même backend | Utilise api.mrn.cityway.fr |
 
-**Key Finding:** The mobile app API at `api.mrn.cityway.fr` is public, works without authentication, and provides real-time transit data in clean JSON format.
+**Conclusion :** L'API mobile à `api.mrn.cityway.fr` est publique, fonctionne sans authentification et fournit des données de transport en temps réel en JSON.
 
 ---
 
-## License
+## Licence
 
-This API documentation was reverse-engineered from:
-1. The old Astuce-Java library (Alba0404/Astuce-API)
-2. The mobile app's public API at api.mrn.cityway.fr
-3. Network traffic analysis of myastuce.fr
+Ce projet est distribué sous licence **BSD 2-Clause**. Voir le fichier [LICENSE](LICENSE) pour le texte complet.
 
-Use responsibly and respect the terms of service of myastuce.fr.
+Cette documentation API a été reverse-engineered à partir de :
+1. L'ancienne bibliothèque Astuce-Java (Alba0404/Astuce-API)
+2. L'API publique de l'application mobile à api.mrn.cityway.fr
+3. L'analyse du trafic réseau de myastuce.fr
+
+Utilisez de manière responsable et respectez les conditions d'utilisation de myastuce.fr.

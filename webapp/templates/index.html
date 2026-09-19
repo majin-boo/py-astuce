@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="{{ refresh }}">
+  <title>{{ stop_name }} — Prochains passages</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css">
+  <style>
+    :root {
+      --pico-font-size: 16px;
+    }
+
+    body {
+      padding: 1.5rem 1rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      margin-bottom: 0.25rem;
+      font-size: 1.5rem;
+    }
+
+    header p {
+      color: var(--pico-muted-color);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .departure {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--pico-muted-border-color);
+    }
+
+    .departure:last-child {
+      border-bottom: none;
+    }
+
+    .line-badge {
+      display: inline-block;
+      min-width: 2.8rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.4rem;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-align: center;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .departure-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .departure-destination {
+      font-size: 0.85rem;
+      color: var(--pico-muted-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .departure-time {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .minutes {
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .minutes-unit {
+      font-size: 0.8rem;
+      color: var(--pico-muted-color);
+    }
+
+    .clock {
+      font-size: 0.85rem;
+      color: var(--pico-muted-color);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .status-cancelled {
+      background: #e53935;
+      color: #fff;
+    }
+
+    .status-disrupted {
+      background: #f57c00;
+      color: #fff;
+    }
+
+    .status-late {
+      background: #fbc02d;
+      color: #333;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--pico-muted-color);
+    }
+
+    .refresh-info {
+      font-size: 0.8rem;
+      color: var(--pico-muted-color);
+      text-align: right;
+      margin-top: 1.5rem;
+    }
+
+    article {
+      padding: 1.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>{{ stop_name }}</h1>
+    <p>
+      {% if stop_locality %}{{ stop_locality }} &mdash; {% endif %}Direction&nbsp;{{ direction }}
+      &mdash;
+      <span id="clock"></span>
+    </p>
+  </header>
+
+  <main>
+    {% if error %}
+      <article>
+        <strong>Erreur lors de la récupération des données</strong><br>
+        <small>{{ error }}</small>
+      </article>
+
+    {% elif departures %}
+      <article>
+        {% for dep in departures %}
+          <div class="departure">
+
+            {# Colored line badge #}
+            <span class="line-badge" style="background-color: #{{ dep.line_color if dep.line_color else '888888' }};">
+              {{ dep.line_number }}
+            </span>
+
+            {# Destination #}
+            <div class="departure-info">
+              <div>
+                {{ dep.direction_name }}
+                {% if dep.is_cancelled %}
+                  <span class="status-badge status-cancelled">Supprimé</span>
+                {% elif dep.is_disrupted %}
+                  <span class="status-badge status-disrupted">Perturbé</span>
+                {% elif dep.is_late %}
+                  <span class="status-badge status-late">Retard</span>
+                {% endif %}
+              </div>
+              <div class="departure-destination">→ {{ dep.destination }}</div>
+            </div>
+
+            {# Time #}
+            <div class="departure-time">
+              {% if dep.minutes == 0 %}
+                <div class="minutes">imminent</div>
+              {% else %}
+                <div class="minutes">{{ dep.minutes }}<span class="minutes-unit"> min</span></div>
+              {% endif %}
+              <div class="clock">{{ dep.time }}</div>
+            </div>
+
+          </div>
+        {% endfor %}
+      </article>
+
+    {% else %}
+      <div class="empty">
+        <p>Aucun passage prévu.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <footer>
+    <p class="refresh-info">Actualisation automatique toutes les {{ refresh }}&nbsp;s</p>
+  </footer>
+
+  <script>
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+
+</body>
+</html>
