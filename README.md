@@ -15,7 +15,7 @@ Le site **MyAstuce** ([myastuce.fr](https://www.myastuce.fr)) est le portail off
 
 | Mode API | Réseau Astuce | Description |
 |----------|--------------|-------------|
-| `Metro` | Métro | Ligne de métro automatique |
+| `Metro` | Métro | Ligne de métro |
 | `Trolley` | TEOR (T1, T2, T3, T4) | Tramway sur pneus guidé — appelé `TROLLEY` dans l'API de recherche |
 | `Bus` | FAST (F1-F9), Bus, ELBEUF | Bus régulier et bus à haut niveau de service — FAST n'a pas de mode dédié |
 | `Bus` / `TAD` | AlloBus | Transport à la demande — apparaît comme `TAD` dans l'API de recherche |

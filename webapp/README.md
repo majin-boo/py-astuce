@@ -38,7 +38,7 @@ Puis ouvrir [http://localhost:5000](http://localhost:5000). La page se recharge 
 
 | Mode (`search_stops`) | Mode (`get_next_departures`) | Réseau Astuce | Description |
 |-----------------------|------------------------------|--------------|-------------|
-| `METRO` | `Metro` | Métro | Ligne de métro automatique |
+| `METRO` | `Metro` | Métro | Ligne de métro |
 | `TROLLEY` | `Trolley` | TEOR (T1, T2, T3, T4) | Tramway sur pneus guidé |
 | `BUS` | `Bus` | FAST (F1-F9), Bus, ELBEUF | Bus régulier et BHNS — FAST n'a pas de mode dédié |
 | `TAD` | — | AlloBus | Transport à la demande |
