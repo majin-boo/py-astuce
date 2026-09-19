@@ -52,6 +52,16 @@ cp webapp/config.json.example webapp/config.json
 | `TAXIBUS` | — | Taxi (t35, t53, t54) | Lignes de taxi conventionnées |
 | `CAR` | — | Cars interurbains | Cars régionaux (Nomad) desservant certains arrêts |
 
+## Affichage sur Chromecast
+
+L'application peut être castée sur n'importe quel appareil compatible Chromecast avec [catt](https://github.com/skorokithakis/catt) :
+
+```bash
+catt -d "Nom du device Chromecast" cast_site http://$IP:5000
+```
+
+> Le serveur doit écouter sur `"host": "IP_Locale"` ou `"host": "0.0.0.0"`  dans `config.json` pour être accessible depuis le Chromecast.
+
 ## Trouver l'ID d'un arrêt
 
 ### Via le shell Python interactif
