@@ -16,6 +16,12 @@ Puis ouvrir [http://localhost:5000](http://localhost:5000). La page se recharge 
 
 ## Configuration
 
+Copier le fichier d'exemple et l'adapter :
+
+```bash
+cp webapp/config.json.example webapp/config.json
+```
+
 Éditer `webapp/config.json` :
 
 ```json
@@ -31,6 +37,7 @@ Puis ouvrir [http://localhost:5000](http://localhost:5000). La page se recharge 
 | `stop_id` | ID de l'arrêt logique (voir ci-dessous) |
 | `direction` | Sens de passage : `1` ou `2` |
 | `refresh_seconds` | Intervalle de rechargement en secondes |
+| `host` | Adresse d'écoute (défaut : `"127.0.0.1"`, mettre `"0.0.0.0"` pour exposer sur le réseau) |
 | `port` | Port d'écoute (défaut : `5000`) |
 | `debug` | Mode debug Flask avec rechargement automatique (défaut : `false`) |
 

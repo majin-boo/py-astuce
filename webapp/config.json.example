@@ -2,6 +2,7 @@
   "stop_id": 9144,
   "direction": 1,
   "refresh_seconds": 30,
+  "host": "127.0.0.1",
   "port": 5000,
   "debug": false
 }

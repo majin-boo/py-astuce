@@ -89,13 +89,14 @@ def index():
 if __name__ == "__main__":
     config = load_config()
     debug = config.get("debug", False)
+    host = config.get("host", "127.0.0.1")
     port = int(config.get("port", 5000))
 
     if debug:
         # Serveur de développement Flask (rechargement automatique, debugger)
-        app.run(debug=True, port=port)
+        app.run(debug=True, host=host, port=port)
     else:
         # Serveur WSGI de production
         from waitress import serve
-        print(f"Serveur démarré sur http://localhost:{port}")
-        serve(app, host="0.0.0.0", port=port)
+        print(f"Serveur démarré sur http://{host}:{port}")
+        serve(app, host=host, port=port)

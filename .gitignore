@@ -1,0 +1,30 @@
+# Configuration locale de la webapp (contient l'arrêt et les préférences)
+webapp/config.json
+
+# Environnement virtuel
+.venv/
+
+# uv
+.uv-cache/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Tests et couverture
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
