@@ -248,6 +248,10 @@ class AstuceClient:
             raise AstuceAPIError(e.code, str(e.reason)) from e
         except urllib.error.URLError as e:
             raise AstuceNetworkError(str(e.reason)) from e
+        except TimeoutError as e:
+            raise AstuceNetworkError(f"Request timed out after {self._timeout}s") from e
+        except OSError as e:
+            raise AstuceNetworkError(str(e)) from e
 
         try:
             return json.loads(raw)
